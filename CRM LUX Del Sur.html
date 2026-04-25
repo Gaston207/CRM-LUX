@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestor de Clientes | Experiencia Viva</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Segoe UI',Inter,system-ui;
+  background:#f8fafc;
+  color:#1e293b;
+  margin:0;
+  padding-bottom:80px;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';
+  position:fixed;
+  top:0;left:0;width:100%;height:100%;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(34,197,94,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(139,92,246,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 50% 80%, rgba(59,130,246,0.06) 0%, transparent 50%);
+  pointer-events:none;
+  z-index:0;
+  animation: bgShift 20s ease infinite;
+}
+@keyframes bgShift{
+  0%,100%{opacity:1}
+  50%{opacity:0.5}
+}
+header{
+  background:linear-gradient(135deg,#ffffff,#f1f5f9);
+  padding:20px;
+  text-align:center;
+  font-size:22px;
+  font-weight:700;
+  border-bottom:1px solid #e2e8f0;
+  letter-spacing:-0.3px;
+  position:relative;
+  z-index:1;
+  color:#0f172a;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05);
+}
+.system-pulse{
+  display:inline-block;
+  width:8px;
+  height:8px;
+  background:#22c55e;
+  border-radius:50%;
+  margin-right:8px;
+  animation:systemPulse 2s infinite;
+  box-shadow:0 0 12px #22c55e80;
+}
+@keyframes systemPulse{
+  0%,100%{box-shadow:0 0 4px #22c55e80}
+  50%{box-shadow:0 0 16px #22c55e,0 0 24px #22c55e40}
+}
+.container{
+  max-width:1000px;
+  margin:auto;
+  padding:16px;
+  position:relative;
+  z-index:1;
+}
+.topbar{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:20px;
+}
+.search-box{
+  flex:2;
+  background:#ffffff;
+  border:1px solid #cbd5e1;
+  border-radius:40px;
+  padding:12px 18px;
+  color:#0f172a;
+  outline:none;
+  font-size:14px;
+  transition:all 0.3s;
+  box-shadow:0 1px 2px rgba(0,0,0,0.03);
+}
+.search-box::placeholder{color:#94a3b8;}
+.search-box:focus{
+  border-color:#22c55e;
+  box-shadow:0 0 0 3px #22c55e20,0 4px 12px rgba(0,0,0,0.05);
+  transform:translateY(-1px);
+}
+.tag-filter{
+  flex:1;
+  background:#ffffff;
+  border-radius:40px;
+  padding:0 12px;
+  color:#0f172a;
+  border:1px solid #cbd5e1;
+  font-size:14px;
+  cursor:pointer;
+  box-shadow:0 1px 2px rgba(0,0,0,0.03);
+}
+.tag-filter:hover{border-color:#8b5cf6;}
+.btn-import{
+  background:#8b5cf6;
+  border:none;
+  border-radius:40px;
+  padding:0 20px;
+  font-weight:bold;
+  cursor:pointer;
+  color:white;
+  position:relative;
+  overflow:hidden;
+  transition:all 0.3s;
+  box-shadow:0 2px 8px #8b5cf620;
+}
+.btn-import::after{
+  content:'';
+  position:absolute;
+  top:50%;left:50%;
+  width:0;height:0;
+  background:rgba(255,255,255,0.2);
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  transition:width 0.6s,height 0.6s;
+}
+.btn-import:hover::after{
+  width:300px;
+  height:300px;
+}
+.btn-import:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 25px #8b5cf640;
+}
+.stats-row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:20px;
+}
+.stat-card{
+  background:#ffffff;
+  border-radius:24px;
+  padding:12px 18px;
+  flex:1;
+  text-align:center;
+  border:1px solid #e2e8f0;
+  transition:all 0.3s;
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+  color:#475569;
+}
+.stat-card:hover{
+  transform:translateY(-4px);
+  border-color:#22c55e40;
+  box-shadow:0 12px 30px rgba(0,0,0,0.08);
+}
+.stat-number{
+  font-size:28px;
+  font-weight:800;
+  background:linear-gradient(135deg,#16a34a,#22c55e);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+@keyframes countUp{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.stat-number.animate{animation:countUp 0.5s ease-out}
+.tag-cloud{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:15px 0;
+}
+.tag{
+  background:#f1f5f9;
+  padding:6px 14px;
+  border-radius:40px;
+  font-size:13px;
+  cursor:pointer;
+  transition:all 0.2s;
+  border:1px solid #e2e8f0;
+  color:#475569;
+  font-weight:500;
+}
+.tag.active{
+  background:#22c55e;
+  color:white;
+  border-color:#22c55e;
+  font-weight:bold;
+  box-shadow:0 2px 8px #22c55e30;
+}
+.tag:hover{
+  transform:scale(1.05) translateY(-2px);
+  background:#e2e8f0;
+  box-shadow:0 4px 12px rgba(0,0,0,0.06);
+}
+.card{
+  background:#ffffff;
+  border-radius:20px;
+  padding:18px;
+  margin-bottom:12px;
+  border:1px solid #e2e8f0;
+  transition:all 0.3s;
+  position:relative;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.card-fresh{border-left:3px solid #22c55e;}
+.card-stale{border-left:3px solid #f59e0b;opacity:0.9;}
+.card-cold{border-left:3px solid #ef4444;opacity:0.8;}
+.card:hover{
+  transform:translateX(6px) translateY(-2px);
+  border-color:#22c55e40;
+  box-shadow:0 8px 25px rgba(0,0,0,0.08);
+}
+.card-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:8px;
+}
+.nombre{
+  font-size:18px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#0f172a;
+}
+.mood-indicator{
+  font-size:16px;
+  animation:moodBounce 2s infinite;
+}
+@keyframes moodBounce{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-3px)}
+}
+.tags-list{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.tag-item{
+  background:#22c55e15;
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:600;
+  color:#16a34a;
+  transition:all 0.2s;
+  border:1px solid #22c55e30;
+  cursor:pointer;
+}
+.tag-item:hover{
+  background:#22c55e;
+  color:white;
+  transform:scale(1.1);
+}
+.contact-stats{
+  display:flex;
+  gap:12px;
+  font-size:13px;
+  color:#64748b;
+  margin:10px 0;
+  flex-wrap:wrap;
+}
+.actions{
+  display:flex;
+  gap:8px;
+  margin-top:12px;
+}
+.actions button{
+  flex:1;
+  background:#f1f5f9;
+  border:1px solid #e2e8f0;
+  padding:10px 6px;
+  border-radius:40px;
+  color:#475569;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.2s;
+  font-size:13px;
+}
+.actions button:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+.btn-whatsapp{
+  background:#25D36615;
+  color:#25D366;
+  border:1px solid #25D36630;
+}
+.btn-whatsapp:hover{background:#25D366;color:white;border-color:#25D366;}
+.btn-edit{background:#3b82f615;color:#3b82f6;border:1px solid #3b82f630;}
+.btn-edit:hover{background:#3b82f6;color:white;border-color:#3b82f6;}
+.btn-del{background:#ef444415;color:#ef4444;border:1px solid #ef444430;}
+.btn-del:hover{background:#ef4444;color:white;border-color:#ef4444;}
+.btn-add-tag{background:#8b5cf615;color:#8b5cf6;border:1px solid #8b5cf630;}
+.btn-add-tag:hover{background:#8b5cf6;color:white;border-color:#8b5cf6;}
+.btn-notes{background:#f59e0b15;color:#f59e0b;border:1px solid #f59e0b30;}
+.btn-notes:hover{background:#f59e0b;color:white;border-color:#f59e0b;}
+
+.toast{
+  position:fixed;
+  top:20px;
+  right:20px;
+  background:#ffffff;
+  border:1px solid #22c55e;
+  padding:12px 20px;
+  border-radius:40px;
+  font-size:14px;
+  z-index:2000;
+  animation:slideIn 2s ease;
+  box-shadow:0 8px 25px rgba(0,0,0,0.12);
+  color:#0f172a;
+  font-weight:600;
+}
+@keyframes slideIn{
+  0%{transform:translateX(100%);opacity:0}
+  20%{transform:translateX(0);opacity:1}
+  80%{transform:translateX(0);opacity:1}
+  100%{transform:translateX(100%);opacity:0}
+}
+.fab{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#22c55e;
+  width:56px;
+  height:56px;
+  border-radius:28px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  cursor:pointer;
+  box-shadow:0 8px 25px #22c55e40;
+  transition:all 0.3s;
+  z-index:100;
+  border:none;
+  color:white;
+}
+.fab:hover{
+  transform:scale(1.1) rotate(90deg);
+  box-shadow:0 12px 35px #22c55e60;
+}
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,0.6);
+  backdrop-filter:blur(4px);
+  justify-content:center;
+  align-items:center;
+  z-index:1000;
+}
+.modal-content{
+  background:#ffffff;
+  padding:24px;
+  border-radius:32px;
+  width:90%;
+  max-width:450px;
+  border:1px solid #e2e8f0;
+  max-height:85vh;
+  overflow-y:auto;
+  box-shadow:0 20px 50px rgba(0,0,0,0.15);
+  color:#0f172a;
+}
+.modal-content h3{margin-bottom:16px;color:#0f172a;}
+input,textarea,select{
+  width:100%;
+  padding:12px;
+  margin-top:8px;
+  margin-bottom:12px;
+  background:#f8fafc;
+  border:1px solid #cbd5e1;
+  border-radius:16px;
+  color:#0f172a;
+  font-size:14px;
+}
+input::placeholder,textarea::placeholder{color:#94a3b8;}
+input:focus,textarea:focus,select:focus{
+  border-color:#22c55e;
+  outline:none;
+  box-shadow:0 0 0 3px #22c55e20;
+  background:#ffffff;
+}
+textarea{min-height:100px;resize:vertical;}
+button{
+  background:#22c55e;
+  border:none;
+  padding:12px;
+  border-radius:40px;
+  font-weight:bold;
+  margin-top:5px;
+  cursor:pointer;
+  width:100%;
+  color:white;
+  font-size:14px;
+  transition:all 0.2s;
+  box-shadow:0 2px 8px #22c55e30;
+}
+button:hover{filter:brightness(1.05);transform:translateY(-1px);box-shadow:0 4px 16px #22c55e40;}
+.btn-secondary{background:#e2e8f0;color:#475569;box-shadow:none;}
+.btn-secondary:hover{background:#cbd5e1;color:#0f172a;}
+.btn-purple{background:#8b5cf6;box-shadow:0 2px 8px #8b5cf630;}
+.btn-purple:hover{box-shadow:0 4px 16px #8b5cf640;}
+.btn-mic{
+  background:#ef4444;
+  width:auto;
+  padding:12px 20px;
+  transition:all 0.3s;
+}
+.btn-mic.recording{
+  animation:micPulse 1.5s infinite;
+  box-shadow:0 0 20px #ef444480;
+}
+@keyframes micPulse{
+  0%,100%{box-shadow:0 0 5px #ef4444}
+  50%{box-shadow:0 0 25px #ef4444,0 0 50px #ef444440}
+}
+.empty{
+  text-align:center;
+  padding:40px;
+  opacity:0.6;
+  color:#64748b;
+}
+.confetti-particle{
+  position:fixed;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:999;
+  animation:confettiFall 1.5s ease-out forwards;
+}
+@keyframes confettiFall{
+  0%{transform:translateY(0) rotate(0deg);opacity:1}
+  100%{transform:translateY(100vh) rotate(720deg);opacity:0}
+}
+.preview-box{
+  background:#f8fafc;
+  padding:12px;
+  border-radius:16px;
+  margin:12px 0;
+  font-size:13px;
+  border:1px solid #e2e8f0;
+  color:#334155;
+}
+.history-item{
+  background:#f8fafc;
+  padding:8px 12px;
+  border-radius:12px;
+  margin:6px 0;
+  font-size:12px;
+  cursor:pointer;
+  transition:all 0.2s;
+  border:1px solid #e2e8f0;
+  color:#475569;
+}
+.history-item:hover{
+  background:#f1f5f9;
+  transform:translateX(4px);
+}
+.intencion-badge{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:12px;
+  font-size:11px;
+  font-weight:bold;
+  margin-left:4px;
+}
+.intencion-compra{background:#22c55e25;color:#16a34a;border:1px solid #22c55e40;}
+.intencion-consulta{background:#3b82f625;color:#2563eb;border:1px solid #3b82f640;}
+.intencion-reclamo{background:#ef444425;color:#dc2626;border:1px solid #ef444440;}
+.intencion-presupuesto{background:#f59e0b25;color:#d97706;border:1px solid #f59e0b40;}
+label{display:block;margin-top:8px;font-size:14px;color:#64748b;font-weight:600;}
+
+/* ===== AVATAR ===== */
+.avatar{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  font-size:16px;
+  color:white;
+  flex-shrink:0;
+  text-transform:uppercase;
+  box-shadow:0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* ===== VIEW TOGGLE ===== */
+.view-controls{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+}
+.view-btn{
+  background:#f1f5f9;
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+  padding:8px 16px;
+  color:#64748b;
+  font-size:13px;
+  cursor:pointer;
+  transition:all 0.2s;
+  width:auto;
+  font-weight:600;
+}
+.view-btn.active{
+  background:#22c55e15;
+  border-color:#22c55e;
+  color:#16a34a;
+  box-shadow:0 2px 8px #22c55e20;
+}
+.view-btn:hover{border-color:#22c55e80;}
+.sort-select{
+  background:#ffffff;
+  border:1px solid #cbd5e1;
+  border-radius:12px;
+  padding:8px 14px;
+  color:#0f172a;
+  font-size:13px;
+  cursor:pointer;
+  margin:0;
+}
+.sort-select:hover{border-color:#8b5cf6;}
+.btn-export{
+  background:#0f766e;
+  border:none;
+  border-radius:12px;
+  padding:8px 16px;
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+  font-size:13px;
+  width:auto;
+  transition:all 0.2s;
+  box-shadow:0 2px 8px #0f766e30;
+}
+.btn-export:hover{
+  background:#14b8a6;
+  transform:translateY(-2px);
+  box-shadow:0 4px 15px #14b8a640;
+}
+
+/* ===== PIPELINE / KANBAN ===== */
+.pipeline-container{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-bottom:20px;
+}
+@media(max-width:768px){
+  .pipeline-container{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:480px){
+  .pipeline-container{grid-template-columns:1fr;}
+}
+.pipeline-column{
+  background:#ffffff;
+  border-radius:20px;
+  padding:14px;
+  border:1px solid #e2e8f0;
+  min-height:200px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.pipeline-header{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:12px;
+  padding-bottom:10px;
+  border-bottom:2px solid;
+  font-weight:700;
+  font-size:14px;
+  color:#0f172a;
+}
+.pipeline-count{
+  background:#f1f5f9;
+  padding:2px 8px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:600;
+  margin-left:auto;
+  color:#64748b;
+}
+.pipeline-card{
+  background:#f8fafc;
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:8px;
+  border:1px solid #e2e8f0;
+  transition:all 0.2s;
+  cursor:pointer;
+}
+.pipeline-card:hover{
+  border-color:#22c55e40;
+  transform:translateY(-2px);
+  box-shadow:0 4px 15px rgba(0,0,0,0.06);
+}
+.pipeline-card-name{
+  font-weight:700;
+  font-size:14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:6px;
+  color:#0f172a;
+}
+.pipeline-card-info{
+  font-size:12px;
+  color:#64748b;
+  margin-bottom:8px;
+}
+.pipeline-card-actions{
+  display:flex;
+  gap:4px;
+}
+.pipeline-move-btn{
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:8px;
+  padding:4px 10px;
+  color:#64748b;
+  font-size:11px;
+  cursor:pointer;
+  width:auto;
+  transition:all 0.2s;
+  font-weight:600;
+}
+.pipeline-move-btn:hover{
+  background:#f1f5f9;
+  color:#0f172a;
+  transform:none;
+  border-color:#cbd5e1;
+}
+.col-nuevo .pipeline-header{border-color:#3b82f6;}
+.col-contactado .pipeline-header{border-color:#8b5cf6;}
+.col-negociando .pipeline-header{border-color:#f59e0b;}
+.col-cerrado .pipeline-header{border-color:#22c55e;}
+
+/* ===== NOTES ===== */
+.note-entry{
+  background:#f8fafc;
+  padding:10px 14px;
+  border-radius:12px;
+  margin:8px 0;
+  border-left:3px solid #8b5cf6;
+  animation:fadeIn 0.3s ease;
+  color:#334155;
+}
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.note-date{
+  font-size:11px;
+  color:#94a3b8;
+  margin-bottom:4px;
+}
+.note-text{
+  font-size:13px;
+  color:#475569;
+  line-height:1.5;
+}
+.notes-list{
+  max-height:250px;
+  overflow-y:auto;
+  margin:12px 0;
+  padding-right:4px;
+}
+.notes-list::-webkit-scrollbar{width:4px;}
+.notes-list::-webkit-scrollbar-track{background:#f1f5f9;border-radius:4px;}
+.notes-list::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px;}
+
+/* ===== PIPELINE BADGE ON CARD ===== */
+.pipeline-badge{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:700;
+  margin-left:8px;
+}
+.pipeline-nuevo{background:#3b82f615;color:#2563eb;border:1px solid #3b82f640;}
+.pipeline-contactado{background:#8b5cf615;color:#7c3aed;border:1px solid #8b5cf640;}
+.pipeline-negociando{background:#f59e0b15;color:#d97706;border:1px solid #f59e0b40;}
+.pipeline-cerrado{background:#22c55e15;color:#16a34a;border:1px solid #22c55e40;}
+
+/* ===== MINI AVATAR IN PIPELINE ===== */
+.mini-avatar{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  font-size:11px;
+  color:white;
+  flex-shrink:0;
+}
+
+/* ===== STATS PIPELINE BAR ===== */
+.pipeline-bar{
+  display:flex;
+  height:8px;
+  border-radius:8px;
+  overflow:hidden;
+  margin-top:8px;
+  background:#e2e8f0;
+}
+.pipeline-bar-segment{
+  height:100%;
+  transition:width 0.5s ease;
+}
+
+/* ===== KEYBOARD SHORTCUT HINT ===== */
+.shortcut-hint{
+  position:fixed;
+  bottom:20px;
+  left:20px;
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  padding:8px 14px;
+  border-radius:12px;
+  font-size:11px;
+  color:#94a3b8;
+  z-index:50;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+}
+.shortcut-hint kbd{
+  background:#f1f5f9;
+  padding:2px 6px;
+  border-radius:4px;
+  border:1px solid #e2e8f0;
+  font-family:monospace;
+  color:#64748b;
+  font-size:11px;
+}
+</style>
+</head>
+<body>
+
+<header><span class="system-pulse"></span>🏷️ CRM LUX Del Sur</header>
+
+<div class="container">
+  <div class="topbar">
+    <input type="text" id="buscador" class="search-box" placeholder="🔍 Buscar por nombre, teléfono o dirección..." onkeyup="renderizar()">
+    <select id="filtroEtiqueta" class="tag-filter" onchange="renderizar()">
+      <option value="">📌 Todas las etiquetas</option>
+    </select>
+    <button class="btn-import" onclick="abrirImportador()">📥 Importar</button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card" onclick="mostrarToast('🎯 Tienes ' + clientes.length + ' clientes en tu red')">
+      <div class="stat-number" id="totalClientes">0</div>
+      <div>🌟 Clientes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="totalContactos">0</div>
+      <div>💬 Interacciones</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="totalTagsUnicos">0</div>
+      <div>🏷️ Etiquetas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="totalCerrados">0</div>
+      <div>🏆 Cerrados</div>
+      <div class="pipeline-bar" id="pipelineBar"></div>
+    </div>
+  </div>
+
+  <div class="view-controls">
+    <button class="view-btn active" id="btnVistaLista" onclick="cambiarVista('lista')">📋 Lista</button>
+    <button class="view-btn" id="btnVistaPipeline" onclick="cambiarVista('pipeline')">📊 Pipeline</button>
+    <select class="sort-select" id="sortSelect" onchange="renderizar()">
+      <option value="reciente">🕒 Más reciente</option>
+      <option value="nombre">🔤 Nombre A-Z</option>
+      <option value="nombre-desc">🔤 Nombre Z-A</option>
+      <option value="interacciones">🤝 Más interacciones</option>
+      <option value="activo">⚡ Más activos</option>
+    </select>
+    <button class="btn-export" onclick="exportarCSV()">📤 Exportar CSV</button>
+  </div>
+
+  <div id="tagCloud" class="tag-cloud"></div>
+  <div id="listaClientes"></div>
+  <div id="pipelineView" style="display:none;"></div>
+</div>
+
+<button class="fab" onclick="abrirModalCliente()" title="Nuevo cliente (N)">+</button>
+
+<div id="toastContainer"></div>
+
+<div class="shortcut-hint">
+  <kbd>N</kbd> Nuevo &nbsp; <kbd>B</kbd> Buscar &nbsp; <kbd>P</kbd> Pipeline &nbsp; <kbd>E</kbd> Exportar
+</div>
+
+<!-- Modal Cliente -->
+<div class="modal" id="modalCliente">
+  <div class="modal-content">
+    <h3>✏️ Cliente</h3>
+    <label>Nombre completo</label>
+    <input id="nombreCliente" placeholder="Ej: Juan Pérez">
+    <label>Teléfono</label>
+    <input id="telefonoCliente" placeholder="Ej: 1122334455">
+    <label>Dirección (opcional)</label>
+    <input id="direccionCliente" placeholder="Ej: Av. Siempreviva 742">
+    <label>🏷️ Etiquetas (separadas por coma)</label>
+    <input id="tagsInput" placeholder="Ej: VIP, recurrente, nuevo">
+    <label>📊 Etapa del pipeline</label>
+    <select id="pipelineSelect">
+      <option value="nuevo">🔵 Nuevo</option>
+      <option value="contactado">🟣 Contactado</option>
+      <option value="negociando">🟡 Negociando</option>
+      <option value="cerrado">🟢 Cerrado</option>
+    </select>
+    <button onclick="guardarCliente()">💾 Guardar</button>
+    <button class="btn-secondary" onclick="cerrarModalCliente()">Cancelar</button>
+  </div>
+</div>
+
+<!-- Modal Importador -->
+<div class="modal" id="modalImportador">
+  <div class="modal-content">
+    <h3>📨 Importar desde mensaje</h3>
+    <div style="display:flex;gap:8px;">
+      <textarea id="textoImportar" placeholder="Pega aquí el mensaje del cliente...&#10;Ejemplo: Hola, soy Juan Pérez, mi teléfono es 1122334455, quiero comprar urgente"></textarea>
+      <button id="btnMic" class="btn-mic" onclick="toggleVoiceInput()" title="Dictar mensaje">🎤</button>
+    </div>
+    <button class="btn-purple" onclick="previewImportacion()">👀 Previsualizar</button>
+    <div id="previewImportacion" class="preview-box"></div>
+    <button onclick="confirmarImportacion()">✅ Importar cliente</button>
+    <div style="margin-top:16px;">
+      <small>📋 Últimas importaciones:</small>
+      <div id="historialImportaciones"></div>
+    </div>
+    <button class="btn-secondary" onclick="cerrarImportador()">Cerrar</button>
+  </div>
+</div>
+
+<!-- Modal Etiqueta -->
+<div class="modal" id="modalAddTag">
+  <div class="modal-content">
+    <h3>➕ Añadir etiqueta</h3>
+    <label>Nueva etiqueta</label>
+    <input id="nuevaTag" placeholder="Ej: pendiente, gold">
+    <input id="tagClienteIndex" type="hidden">
+    <button onclick="agregarTagCliente()">Guardar etiqueta</button>
+    <button class="btn-secondary" onclick="cerrarModalTag()">Cerrar</button>
+  </div>
+</div>
+
+<!-- Modal Notas -->
+<div class="modal" id="modalNotas">
+  <div class="modal-content">
+    <h3>📝 Notas del cliente</h3>
+    <div id="notasClienteNombre" style="font-weight:700;margin-bottom:12px;font-size:16px;"></div>
+    <div class="notes-list" id="notasList"></div>
+    <label>Agregar nota</label>
+    <textarea id="nuevaNota" placeholder="Escribe una nota sobre este cliente..." style="min-height:70px;"></textarea>
+    <button onclick="guardarNota()">📝 Guardar nota</button>
+    <button class="btn-secondary" onclick="cerrarModalNotas()">Cerrar</button>
+  </div>
+</div>
+
+<script>
+// ============ DATA ============
+let clientes = JSON.parse(localStorage.getItem("clientes_pro")) || [];
+let editIndexLocal = null;
+let pendingTagIndex = null;
+let datosImportPreview = null;
+let historialImportaciones = JSON.parse(localStorage.getItem("historial_import")) || [];
+let recognition = null;
+let isRecording = false;
+let vistaActual = "lista";
+let notasClienteIdx = null;
+
+clientes.forEach(c => {
+  if (!c.pipeline) c.pipeline = "nuevo";
+  if (!c.notas) c.notas = [];
+});
+guardarStorage();
+
+const avatarColors = [
+  "#ef4444","#f97316","#f59e0b","#eab308","#84cc16",
+  "#22c55e","#14b8a6","#06b6d4","#3b82f6","#6366f1",
+  "#8b5cf6","#a855f7","#d946ef","#ec4899","#f43f5e"
+];
+function getAvatarColor(name) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return avatarColors[Math.abs(hash) % avatarColors.length];
+}
+function getInitials(name) {
+  let parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.substring(0, 2).toUpperCase();
+}
+
+function guardarStorage() {
+  localStorage.setItem("clientes_pro", JSON.stringify(clientes));
+}
+function guardarHistorial() {
+  localStorage.setItem("historial_import", JSON.stringify(historialImportaciones));
+}
+
+function mostrarToast(mensaje) {
+  const container = document.getElementById("toastContainer");
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = mensaje;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 2000);
+}
+
+function lanzarConfeti(x, y) {
+  const colores = ["#22c55e", "#8b5cf6", "#3b82f6", "#f59e0b", "#ef4444", "#ec4899"];
+  for (let i = 0; i < 12; i++) {
+    const particle = document.createElement("div");
+    particle.className = "confetti-particle";
+    particle.style.left = x + "px";
+    particle.style.top = y + "px";
+    particle.style.background = colores[Math.floor(Math.random() * colores.length)];
+    particle.style.animationDuration = (Math.random() * 1 + 0.8) + "s";
+    particle.style.width = (Math.random() * 8 + 4) + "px";
+    particle.style.height = (Math.random() * 8 + 4) + "px";
+    document.body.appendChild(particle);
+    setTimeout(() => particle.remove(), 1500);
+  }
+}
+
+function obtenerEstadoCliente(cliente) {
+  if (!cliente.ultimoContacto) return { clase: 'card-cold', emoji: '😴', estado: 'Sin contacto' };
+  const partes = cliente.ultimoContacto.split('/');
+  const fechaUltimo = new Date(partes[2], partes[1] - 1, partes[0]);
+  const dias = Math.floor((new Date() - fechaUltimo) / (1000 * 60 * 60 * 24));
+  if (dias <= 7) return { clase: 'card-fresh', emoji: '😊', estado: 'Activo' };
+  if (dias <= 30) return { clase: 'card-stale', emoji: '😐', estado: 'Inactivo' };
+  return { clase: 'card-cold', emoji: '😴', estado: 'Olvidado' };
+}
+
+function capitalizar(str) {
+  if (!str) return "";
+  return str.split(" ").map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(" ");
+}
+
+function toggleVoiceInput() {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    alert("Tu navegador no soporta reconocimiento de voz. Usa Chrome.");
+    return;
+  }
+  if (isRecording) { recognition.stop(); return; }
+  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "es-ES";
+  recognition.interimResults = false;
+  recognition.continuous = false;
+  recognition.onstart = function () {
+    isRecording = true;
+    document.getElementById("btnMic").classList.add("recording");
+    document.getElementById("btnMic").textContent = "🔴";
+    mostrarToast("🎤 Escuchando...");
+  };
+  recognition.onresult = function (event) {
+    document.getElementById("textoImportar").value = event.results[0][0].transcript;
+    mostrarToast("✅ ¡Mensaje capturado!");
+  };
+  recognition.onerror = function () {
+    isRecording = false;
+    document.getElementById("btnMic").classList.remove("recording");
+    document.getElementById("btnMic").textContent = "🎤";
+  };
+  recognition.onend = function () {
+    isRecording = false;
+    document.getElementById("btnMic").classList.remove("recording");
+    document.getElementById("btnMic").textContent = "🎤";
+  };
+  recognition.start();
+}
+function abrirModalCliente() {
+  document.getElementById("nombreCliente").value = "";
+  document.getElementById("telefonoCliente").value = "";
+  document.getElementById("direccionCliente").value = "";
+  document.getElementById("tagsInput").value = "";
+  document.getElementById("pipelineSelect").value = "nuevo";
+  editIndexLocal = null;
+  document.getElementById("modalCliente").style.display = "flex";
+}
+function cerrarModalCliente() { document.getElementById("modalCliente").style.display = "none"; }
+function abrirImportador() {
+  document.getElementById("textoImportar").value = "";
+  document.getElementById("previewImportacion").innerHTML = "";
+  datosImportPreview = null;
+  document.getElementById("modalImportador").style.display = "flex";
+  renderizarHistorial();
+}
+function cerrarImportador() {
+  document.getElementById("modalImportador").style.display = "none";
+  if (isRecording) recognition.stop();
+}
+function mostrarModalTag(index) {
+  pendingTagIndex = index;
+  document.getElementById("nuevaTag").value = "";
+  document.getElementById("tagClienteIndex").value = index;
+  document.getElementById("modalAddTag").style.display = "flex";
+}
+function cerrarModalTag() { document.getElementById("modalAddTag").style.display = "none"; pendingTagIndex = null; }
+
+function abrirModalNotas(idx) {
+  notasClienteIdx = idx;
+  let c = clientes[idx];
+  document.getElementById("notasClienteNombre").textContent = c.nombre;
+  document.getElementById("nuevaNota").value = "";
+  renderizarNotas();
+  document.getElementById("modalNotas").style.display = "flex";
+}
+function cerrarModalNotas() { document.getElementById("modalNotas").style.display = "none"; notasClienteIdx = null; }
+function renderizarNotas() {
+  let c = clientes[notasClienteIdx];
+  let div = document.getElementById("notasList");
+  if (!c.notas || c.notas.length === 0) {
+    div.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;">Sin notas aún</div>';
+    return;
+  }
+  div.innerHTML = c.notas.map(n =>
+    '<div class="note-entry"><div class="note-date">🕒 ' + n.fecha + '</div><div class="note-text">' + n.texto.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div></div>'
+  ).join('');
+  div.scrollTop = div.scrollHeight;
+}
+function guardarNota() {
+  let texto = document.getElementById("nuevaNota").value.trim();
+  if (!texto) return;
+  if (!clientes[notasClienteIdx].notas) clientes[notasClienteIdx].notas = [];
+  clientes[notasClienteIdx].notas.push({ fecha: new Date().toLocaleString(), texto: texto });
+  guardarStorage();
+  document.getElementById("nuevaNota").value = "";
+  renderizarNotas();
+  mostrarToast("📝 Nota guardada");
+}
+
+function guardarCliente() {
+  let nom = document.getElementById("nombreCliente").value.trim();
+  let tel = document.getElementById("telefonoCliente").value.trim();
+  let dir = document.getElementById("direccionCliente").value.trim();
+  let tagsRaw = document.getElementById("tagsInput").value.trim();
+  let pipeline = document.getElementById("pipelineSelect").value;
+  if (!nom || !tel) { alert("Nombre y teléfono son obligatorios"); return; }
+  let telefonoLimpio = tel.replace(/[^0-9]/g, "");
+  if (telefonoLimpio.length < 6) { alert("Teléfono inválido"); return; }
+  let tagsArray = [];
+  if (tagsRaw) { tagsArray = tagsRaw.split(",").map(t => t.trim().toUpperCase()).filter(t => t.length > 0); }
+  let nuevoCliente = {
+    id: Date.now() + Math.random(), nombre: capitalizar(nom), telefono: telefonoLimpio,
+    direccion: dir || "", tags: tagsArray, interacciones: 0,
+    fechaRegistro: new Date().toLocaleDateString(), ultimoContacto: null,
+    pipeline: pipeline, notas: []
+  };
+  if (editIndexLocal !== null) {
+    let antiguo = clientes[editIndexLocal];
+    clientes[editIndexLocal] = { ...nuevoCliente, interacciones: antiguo.interacciones, ultimoContacto: antiguo.ultimoContacto, notas: antiguo.notas || [] };
+    editIndexLocal = null;
+    mostrarToast("✏️ Cliente actualizado");
+  } else {
+    if (clientes.some(c => c.telefono === telefonoLimpio)) { alert("Ya existe un cliente con ese teléfono"); return; }
+    clientes.push(nuevoCliente);
+    mostrarToast("🎉 ¡Nuevo cliente agregado!");
+    const fab = document.querySelector('.fab');
+    const rect = fab.getBoundingClientRect();
+    lanzarConfeti(rect.left + rect.width / 2, rect.top);
+  }
+  guardarStorage();
+  cerrarModalCliente();
+  renderizar();
+  animarEstadisticas();
+}
+
+function editarCliente(idx) {
+  let c = clientes[idx];
+  document.getElementById("nombreCliente").value = c.nombre;
+  document.getElementById("telefonoCliente").value = c.telefono;
+  document.getElementById("direccionCliente").value = c.direccion;
+  document.getElementById("tagsInput").value = c.tags.join(", ");
+  document.getElementById("pipelineSelect").value = c.pipeline || "nuevo";
+  editIndexLocal = idx;
+  document.getElementById("modalCliente").style.display = "flex";
+}
+
+function eliminarCliente(idx) {
+  if (confirm("¿Eliminar cliente permanentemente?")) {
+    const nombre = clientes[idx].nombre;
+    clientes.splice(idx, 1);
+    guardarStorage();
+    mostrarToast("🗑️ " + nombre + " eliminado");
+    renderizar();
+  }
+}
+
+function incrementarInteraccion(idx) {
+  clientes[idx].interacciones += 1;
+  clientes[idx].ultimoContacto = new Date().toLocaleDateString();
+  guardarStorage();
+}
+
+function abrirWhatsapp(numero, idx) {
+  incrementarInteraccion(idx);
+  mostrarToast("💬 Abriendo WhatsApp...");
+  setTimeout(() => renderizar(), 500);
+  window.open("https://wa.me/" + numero, "_blank");
+}
+
+function agregarTagCliente() {
+  let newTag = document.getElementById("nuevaTag").value.trim().toUpperCase();
+  if (!newTag) return;
+  if (pendingTagIndex !== null && clientes[pendingTagIndex]) {
+    if (!clientes[pendingTagIndex].tags.includes(newTag)) {
+      clientes[pendingTagIndex].tags.push(newTag);
+      mostrarToast("🏷️ Etiqueta #" + newTag + " agregada");
+    } else { alert("Ya tiene esa etiqueta"); }
+    guardarStorage();
+    renderizar();
+  }
+  cerrarModalTag();
+}
+
+function moverPipeline(idx, nuevaEtapa) {
+  clientes[idx].pipeline = nuevaEtapa;
+  guardarStorage();
+  renderizar();
+  let emojis = { nuevo: "🔵", contactado: "🟣", negociando: "🟡", cerrado: "🟢" };
+  mostrarToast((emojis[nuevaEtapa] || "") + " " + clientes[idx].nombre + " → " + nuevaEtapa.charAt(0).toUpperCase() + nuevaEtapa.slice(1));
+  if (nuevaEtapa === "cerrado") {
+    const btn = document.querySelector('.view-controls');
+    if (btn) { const rect = btn.getBoundingClientRect(); lanzarConfeti(rect.left + rect.width / 2, rect.top); }
+  }
+}
+
+function detectarIntencion(texto) {
+  let t = texto.toLowerCase();
+  let patrones = {
+    "compra": /(comprar|quiero comprar|necesito urgente|encargar|adquirir|compro|encargo)/i,
+    "consulta": /(consulta|pregunta|quisiera saber|me podrías decir|información|info|duda)/i,
+    "reclamo": /(reclamo|queja|problema|mal|no funciona|defectuoso|error|equivocaron)/i,
+    "presupuesto": /(presupuesto|cotizar|cotización|cuánto sale|precio|costo|valor)/i
+  };
+  for (let [intencion, regex] of Object.entries(patrones)) { if (regex.test(t)) return intencion; }
+  return null;
+}
+function getIntencionEmoji(intencion) {
+  let emojis = { "compra": "🛒", "consulta": "❓", "reclamo": "⚠️", "presupuesto": "💰" };
+  return emojis[intencion] || "";
+}
+
+function extraerDatosDeTexto(texto) {
+  let t = texto.replace(/\n/g, " ");
+  let telefonoMatch = t.match(/\+?\d[\d\s\-\(\)]{7,20}/);
+  let telefono = "";
+  if (telefonoMatch) { telefono = telefonoMatch[0].replace(/[^0-9]/g, ""); if (telefono.length > 11) telefono = telefono.slice(-10); }
+  let nombre = "Cliente";
+  let nombrePatterns = [
+    /(?:mi nombre es|soy|me llamo|nombre:?)\s*([A-Za-zÁÉÍÓÚÑáéíóúñ\s]{3,40})/i,
+    /(?:llamo|apellido:?)\s*([A-Za-zÁÉÍÓÚÑáéíóúñ\s]{3,40})/i,
+    /^([A-Za-zÁÉÍÓÚÑáéíóúñ]{3,20}\s+[A-Za-zÁÉÍÓÚÑáéíóúñ]{3,20})/i
+  ];
+  for (let pattern of nombrePatterns) {
+    let match = t.match(pattern);
+    if (match && match[1]) { let posible = match[1].trim().split(" ").slice(0, 2).join(" "); if (posible.length > 3) { nombre = capitalizar(posible); break; } }
+  }
+  let direccion = "";
+  let dirPatterns = [
+    /(?:vive en|direcci[oó]n:?|domicilio:?)\s*([^.,;]{5,50})/i,
+    /((?:av\.?|avenida|calle|pasaje|ruta)\s+[a-záéíóúñ]+\s+\d{1,5})/i,
+    /(\d{1,5}\s+[a-záéíóúñ]+\s+[a-záéíóúñ]+)/i
+  ];
+  for (let pattern of dirPatterns) { let match = t.match(pattern); if (match && match[1]) { direccion = capitalizar(match[1].trim()); break; } }
+  let tags = [];
+  let keywordTags = { "vip": "VIP", "recurrente": "RECURRENTE", "nuevo": "NUEVO", "cliente frecuente": "FRECUENTE", "potencial": "POTENCIAL", "importante": "IMPORTANTE" };
+  let textoLower = t.toLowerCase();
+  for (let [key, tag] of Object.entries(keywordTags)) { if (textoLower.includes(key)) tags.push(tag); }
+  let intencion = detectarIntencion(texto);
+  if (intencion) tags.push("INTENCION:" + intencion.toUpperCase());
+  return { nombre, telefono, direccion, tags, intencion };
+}
+
+function previewImportacion() {
+  let texto = document.getElementById("textoImportar").value;
+  if (!texto.trim()) { alert("Pega un mensaje primero"); return; }
+  let datos = extraerDatosDeTexto(texto);
+  datosImportPreview = datos;
+  let intencionBadge = "";
+  if (datos.intencion) { intencionBadge = '<span class="intencion-badge intencion-' + datos.intencion + '">' + getIntencionEmoji(datos.intencion) + ' ' + datos.intencion.toUpperCase() + '</span>'; }
+  let previewHtml = '<strong>📌 Vista previa:</strong> ' + intencionBadge + '<br>🧑 <strong>Nombre:</strong> ' + datos.nombre + '<br>📞 <strong>Teléfono:</strong> ' + (datos.telefono || "⚠️ No detectado") + '<br>📍 <strong>Dirección:</strong> ' + (datos.direccion || "—") + '<br>🏷️ <strong>Etiquetas:</strong> ' + (datos.tags.length ? datos.tags.join(", ") : "Ninguna");
+  if (!datos.telefono) previewHtml += '<br><small style="color:#ef4444;">⚠️ No se detectó número de teléfono</small>';
+  document.getElementById("previewImportacion").innerHTML = previewHtml;
+}
+
+function confirmarImportacion() {
+  if (!datosImportPreview) { alert("Primero usa 'Previsualizar'"); return; }
+  let { nombre, telefono, direccion, tags, intencion } = datosImportPreview;
+  if (!telefono) { let manualTel = prompt("No se detectó teléfono. Ingresalo manualmente:"); if (!manualTel || manualTel.trim() === "") return; telefono = manualTel.replace(/[^0-9]/g, ""); }
+  if (telefono.length < 6) { alert("Número inválido"); return; }
+  if (clientes.some(c => c.telefono === telefono)) { alert("Este cliente ya existe en tu lista"); cerrarImportador(); return; }
+  let nuevoCliente = {
+    id: Date.now() + Math.random(), nombre: nombre || "Cliente", telefono: telefono,
+    direccion: direccion || "", tags: tags, interacciones: 0,
+    fechaRegistro: new Date().toLocaleDateString(), ultimoContacto: null,
+    pipeline: "nuevo", notas: []
+  };
+  clientes.push(nuevoCliente);
+  guardarStorage();
+  historialImportaciones.unshift({ nombre: nuevoCliente.nombre, telefono: nuevoCliente.telefono, intencion: intencion, fecha: new Date().toLocaleTimeString(), textoOriginal: document.getElementById("textoImportar").value.substring(0, 60) });
+  if (historialImportaciones.length > 3) historialImportaciones = historialImportaciones.slice(0, 3);
+  guardarHistorial();
+  renderizar();
+  cerrarImportador();
+  mostrarToast("✅ ¡Cliente importado con éxito!");
+  const btn = document.querySelector('.btn-purple');
+  if (btn) { const rect = btn.getBoundingClientRect(); lanzarConfeti(rect.left + rect.width / 2, rect.top); }
+}
+
+function renderizarHistorial() {
+  let div = document.getElementById("historialImportaciones");
+  if (historialImportaciones.length === 0) { div.innerHTML = "<small>Sin importaciones recientes</small>"; return; }
+  div.innerHTML = historialImportaciones.map((h, i) => {
+    let intBadge = h.intencion ? '<span class="intencion-badge intencion-' + h.intencion + '">' + getIntencionEmoji(h.intencion) + '</span>' : "";
+    return '<div class="history-item" onclick="cargarTextoHistorial(' + i + ')">🕒 ' + h.fecha + ' - ' + h.nombre + ' ' + intBadge + '<br><small>' + h.textoOriginal + '...</small></div>';
+  }).join("");
+}
+function cargarTextoHistorial(index) { document.getElementById("textoImportar").value = historialImportaciones[index].textoOriginal; previewImportacion(); }
+
+function exportarCSV() {
+  if (clientes.length === 0) { mostrarToast("⚠️ No hay clientes para exportar"); return; }
+  let headers = ["Nombre","Teléfono","Dirección","Etiquetas","Pipeline","Interacciones","Fecha Registro","Último Contacto","Notas"];
+  let rows = clientes.map(c => ['"' + c.nombre + '"', c.telefono, '"' + (c.direccion || "") + '"', '"' + c.tags.filter(t => !t.startsWith("INTENCION:")).join("; ") + '"', c.pipeline || "nuevo", c.interacciones, c.fechaRegistro, c.ultimoContacto || "Nunca", '"' + (c.notas || []).map(n => n.fecha + ": " + n.texto).join(" | ") + '"']);
+  let csv = '\uFEFF' + headers.join(",") + "\n" + rows.map(r => r.join(",")).join("\n");
+  let blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  let url = URL.createObjectURL(blob);
+  let a = document.createElement("a"); a.href = url; a.download = "clientes_" + new Date().toISOString().slice(0, 10) + ".csv"; a.click();
+  URL.revokeObjectURL(url);
+  mostrarToast("📤 CSV exportado correctamente");
+}
+
+function ordenarClientes(lista) {
+  let criterio = document.getElementById("sortSelect").value;
+  let sorted = [...lista];
+  switch (criterio) {
+    case "nombre": sorted.sort((a, b) => a.nombre.localeCompare(b.nombre)); break;
+    case "nombre-desc": sorted.sort((a, b) => b.nombre.localeCompare(a.nombre)); break;
+    case "interacciones": sorted.sort((a, b) => b.interacciones - a.interacciones); break;
+    case "activo": sorted.sort((a, b) => { let dA = a.ultimoContacto ? new Date(a.ultimoContacto.split('/').reverse().join('-')) : new Date(0); let dB = b.ultimoContacto ? new Date(b.ultimoContacto.split('/').reverse().join('-')) : new Date(0); return dB - dA; }); break;
+    default: sorted.sort((a, b) => b.id - a.id);
+  }
+  return sorted;
+}
+
+function cambiarVista(vista) {
+  vistaActual = vista;
+  document.getElementById("btnVistaLista").classList.toggle("active", vista === "lista");
+  document.getElementById("btnVistaPipeline").classList.toggle("active", vista === "pipeline");
+  renderizar();
+}
+
+function animarEstadisticas() {
+  document.querySelectorAll('.stat-number').forEach(el => { el.classList.remove('animate'); void el.offsetWidth; el.classList.add('animate'); });
+}
+
+function obtenerTodasEtiquetasUnicas() {
+  let etiquetas = new Set();
+  clientes.forEach(c => c.tags.forEach(t => etiquetas.add(t)));
+  return Array.from(etiquetas).sort();
+}
+
+function renderizarTagCloud() {
+  let cloudDiv = document.getElementById("tagCloud");
+  let todas = obtenerTodasEtiquetasUnicas();
+  let filtroActual = document.getElementById("filtroEtiqueta").value;
+  cloudDiv.innerHTML = '<div class="tag ' + (filtroActual === "" ? "active" : "") + '" data-tag="">🏷️ Todas</div>';
+  todas.forEach(tag => { if (!tag.startsWith("INTENCION:")) { cloudDiv.innerHTML += '<div class="tag ' + (filtroActual === tag ? "active" : "") + '" data-tag="' + tag + '">#' + tag + '</div>'; } });
+  document.querySelectorAll("#tagCloud .tag").forEach(el => { el.addEventListener("click", function () { document.getElementById("filtroEtiqueta").value = this.getAttribute("data-tag") || ""; renderizar(); }); });
+}
+
+function renderizarPipelineBar() {
+  let bar = document.getElementById("pipelineBar");
+  let total = clientes.length || 1;
+  let counts = { nuevo: 0, contactado: 0, negociando: 0, cerrado: 0 };
+  clientes.forEach(c => { counts[c.pipeline || "nuevo"]++; });
+  let colors = { nuevo: "#3b82f6", contactado: "#8b5cf6", negociando: "#f59e0b", cerrado: "#22c55e" };
+  bar.innerHTML = Object.entries(counts).map(([stage, count]) => '<div class="pipeline-bar-segment" style="width:' + (count / total * 100) + '%;background:' + colors[stage] + ';" title="' + stage + ': ' + count + '"></div>').join('');
+}
+
+function renderizarPipeline(filtrados) {
+  let pipelineDiv = document.getElementById("pipelineView");
+  let stages = [
+    { key: "nuevo", label: "Nuevo", emoji: "🔵", cls: "col-nuevo" },
+    { key: "contactado", label: "Contactado", emoji: "🟣", cls: "col-contactado" },
+    { key: "negociando", label: "Negociando", emoji: "🟡", cls: "col-negociando" },
+    { key: "cerrado", label: "Cerrado", emoji: "🟢", cls: "col-cerrado" }
+  ];
+  let nextStage = { nuevo: "contactado", contactado: "negociando", negociando: "cerrado" };
+  let prevStage = { contactado: "nuevo", negociando: "contactado", cerrado: "negociando" };
+  let html = '<div class="pipeline-container">';
+  stages.forEach(stage => {
+    let stageClients = filtrados.filter(c => (c.pipeline || "nuevo") === stage.key);
+    html += '<div class="pipeline-column ' + stage.cls + '">';
+    html += '<div class="pipeline-header">' + stage.emoji + ' ' + stage.label + '<span class="pipeline-count">' + stageClients.length + '</span></div>';
+    stageClients.forEach(c => {
+      let idx = clientes.findIndex(cl => cl.id === c.id);
+      let color = getAvatarColor(c.nombre);
+      let initials = getInitials(c.nombre);
+      let notesCount = (c.notas || []).length;
+      html += '<div class="pipeline-card"><div class="pipeline-card-name"><span class="mini-avatar" style="background:' + color + ';">' + initials + '</span> ' + c.nombre + '</div>';
+      html += '<div class="pipeline-card-info">📞 ' + c.telefono + (notesCount ? ' &nbsp;📝 ' + notesCount : '') + '</div>';
+      html += '<div class="pipeline-card-actions">';
+      if (prevStage[stage.key]) { html += '<button class="pipeline-move-btn" onclick="event.stopPropagation();moverPipeline(' + idx + ',\'' + prevStage[stage.key] + '\')">← ' + prevStage[stage.key].charAt(0).toUpperCase() + prevStage[stage.key].slice(1) + '</button>'; }
+      if (nextStage[stage.key]) { html += '<button class="pipeline-move-btn" onclick="event.stopPropagation();moverPipeline(' + idx + ',\'' + nextStage[stage.key] + '\')">' + nextStage[stage.key].charAt(0).toUpperCase() + nextStage[stage.key].slice(1) + ' →</button>'; }
+      html += '<button class="pipeline-move-btn" onclick="event.stopPropagation();abrirModalNotas(' + idx + ')" title="Notas">📝</button>';
+      html += '</div></div>';
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  pipelineDiv.innerHTML = html;
+}
+
+function renderizar() {
+  let busqueda = document.getElementById("buscador").value.toLowerCase();
+  let filtroTag = document.getElementById("filtroEtiqueta").value;
+  let todasTags = obtenerTodasEtiquetasUnicas();
+  let selectTag = document.getElementById("filtroEtiqueta");
+  selectTag.innerHTML = '<option value="">📌 Todas las etiquetas</option>';
+  todasTags.filter(t => !t.startsWith("INTENCION:")).forEach(t => { selectTag.innerHTML += '<option value="' + t + '" ' + (filtroTag === t ? "selected" : "") + '>#' + t + '</option>'; });
+  let filtrados = clientes.filter(cli => {
+    let matchBusqueda = cli.nombre.toLowerCase().includes(busqueda) || cli.telefono.includes(busqueda) || cli.direccion.toLowerCase().includes(busqueda);
+    let matchTag = filtroTag ? cli.tags.includes(filtroTag) : true;
+    return matchBusqueda && matchTag;
+  });
+  let cerrados = clientes.filter(c => c.pipeline === "cerrado").length;
+  document.getElementById("totalClientes").innerText = clientes.length;
+  document.getElementById("totalContactos").innerText = clientes.reduce((acc, c) => acc + c.interacciones, 0);
+  document.getElementById("totalTagsUnicos").innerText = todasTags.filter(t => !t.startsWith("INTENCION:")).length;
+  document.getElementById("totalCerrados").innerText = cerrados;
+  renderizarPipelineBar();
+  let sortedFiltrados = ordenarClientes(filtrados);
+  if (vistaActual === "pipeline") {
+    document.getElementById("listaClientes").style.display = "none";
+    document.getElementById("pipelineView").style.display = "block";
+    renderizarPipeline(sortedFiltrados);
+  } else {
+    document.getElementById("listaClientes").style.display = "block";    document.getElementById("pipelineView").style.display = "none";
+    let listaDiv = document.getElementById("listaClientes");
+    if (sortedFiltrados.length === 0) { listaDiv.innerHTML = '<div class="empty">🚫 No hay clientes con esos filtros</div>'; renderizarTagCloud(); return; }
+    let html = "";
+    sortedFiltrados.forEach(c => {
+      let indiceOriginal = clientes.findIndex(cl => cl.id === c.id);
+      let estado = obtenerEstadoCliente(c);
+      let intencionTag = c.tags.find(t => t.startsWith("INTENCION:"));
+      let intencionBadge = "";
+      if (intencionTag) { let intencion = intencionTag.replace("INTENCION:", "").toLowerCase(); intencionBadge = '<span class="intencion-badge intencion-' + intencion + '">' + getIntencionEmoji(intencion) + '</span>'; }
+      let pipelineBadge = '<span class="pipeline-badge pipeline-' + (c.pipeline || "nuevo") + '">' + ({ nuevo: "🔵 Nuevo", contactado: "🟣 Contactado", negociando: "🟡 Negociando", cerrado: "🟢 Cerrado" }[c.pipeline || "nuevo"]) + '</span>';
+      let color = getAvatarColor(c.nombre);
+      let initials = getInitials(c.nombre);
+      let notesCount = (c.notas || []).length;
+      let notesIndicator = notesCount > 0 ? ' <span style="font-size:12px;color:#f59e0b;">📝 ' + notesCount + '</span>' : '';
+      html += '<div class="card ' + estado.clase + '">' +
+        '<div class="card-header">' +
+        '<span class="nombre"><div class="avatar" style="background:' + color + ';">' + initials + '</div><span class="mood-indicator" title="Estado: ' + estado.estado + '">' + estado.emoji + '</span> ' + c.nombre + ' ' + intencionBadge + pipelineBadge + notesIndicator + '</span>' +
+        '<div class="tags-list">' + c.tags.filter(t => !t.startsWith("INTENCION:")).map(tag => '<span class="tag-item">#' + tag + '</span>').join('') + '<button class="tag-item" style="background:#e2e8f0;color:#64748b;" onclick="event.stopPropagation();mostrarModalTag(' + indiceOriginal + ')">+</button></div></div>' +
+        '<div style="margin-left:50px;">📞 ' + c.telefono + '</div><div style="margin-left:50px;">📍 ' + (c.direccion || "—") + '</div>' +
+        '<div class="contact-stats" style="margin-left:50px;"><span>🤝 ' + (c.interacciones || 0) + ' contactos</span><span>🕒 ' + (c.ultimoContacto || "Nunca") + '</span><span>📅 ' + c.fechaRegistro + '</span></div>' +
+        '<div class="actions">' +
+        '<button class="btn-whatsapp" onclick="abrirWhatsapp(\'' + c.telefono + '\', ' + indiceOriginal + ')">💬</button>' +
+        '<button class="btn-edit" onclick="editarCliente(' + indiceOriginal + ')">✏️</button>' +
+        '<button class="btn-notes" onclick="abrirModalNotas(' + indiceOriginal + ')">📝</button>' +
+        '<button class="btn-add-tag" onclick="mostrarModalTag(' + indiceOriginal + ')">🏷️</button>' +
+        '<button class="btn-del" onclick="eliminarCliente(' + indiceOriginal + ')">🗑️</button>' +
+        '</div></div>';
+    });
+    listaDiv.innerHTML = html;
+  }
+  renderizarTagCloud();
+}
+
+document.addEventListener("keydown", function(e) {
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
+  let anyModalOpen = document.querySelector('.modal[style*="display: flex"]') || document.querySelector('.modal[style*="display:flex"]');
+  if (anyModalOpen) return;
+  switch (e.key.toLowerCase()) {
+    case "n": e.preventDefault(); abrirModalCliente(); break;
+    case "b": e.preventDefault(); document.getElementById("buscador").focus(); break;
+    case "p": e.preventDefault(); cambiarVista(vistaActual === "pipeline" ? "lista" : "pipeline"); break;
+    case "e": e.preventDefault(); exportarCSV(); break;
+  }
+});
+
+window.onclick = function (e) { if (e.target.classList.contains("modal")) { e.target.style.display = "none"; } };
+
+renderizar();
+</script>
+</body>
+</html>
